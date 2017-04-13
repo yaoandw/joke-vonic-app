@@ -33,12 +33,25 @@
   </div>
 </template>
 <script>
+    import AV from 'leancloud-storage/dist/node/index.js';
   export default {
     data () {
       return {
         msg: 'Hello! Vonic.'
       }
-    }
+    },
+      created () {
+//          var TestObject = AV.Object.extend('TestObject');
+//          var testObject = new TestObject();
+//          testObject.save({
+//              words: 'Hello World!'
+//          }).then(function(object) {
+//              alert('LeanCloud Rocks!');
+//          })
+      },
+      mounted () {
+
+      }
   }
 </script>
 <style>

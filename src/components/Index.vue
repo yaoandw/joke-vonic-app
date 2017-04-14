@@ -1,35 +1,14 @@
 <template>
-  <div class="page has-navbar" v-nav="{ title: 'Home' }">
-    <div class="page-content text-center">
-      <h2 class="padding" v-text="msg"></h2>
-
-      <router-link class="button button-assertive" to="/about">
-        <i class="ion-information-circled"></i> About
-      </router-link>
-
-      <div style="height: 40px;"></div>
-
-      <swiper ref="swiper" 
-        direction="horizontal" 
-        width="100%" 
-        height="150" 
-        pager-color="#ea5a49" 
-        pager-bg-color="#fff"
-        hide-pager="false"
-      >
-        <swiper-item style="background: #0a9dc7;">
-          <h3>Keep Hungry</h3>
-        </swiper-item>
-
-        <swiper-item style="background: #44cc00;">
-          <h3>Keep Foolish</h3>
-        </swiper-item>
-
-        <swiper-item style="background: #ffc900;">
-          <h3>..</h3>
-        </swiper-item>
-      </swiper>
-    </div>
+  <div class="page has-navbar" v-nav="{ title: '笑话' }">
+    <scroller class="page-content"
+              :on-refresh="onRefresh"
+              :on-infinite="onInfinite"
+              ref="scroller">
+      <div v-for="(item, index) in items" @click="onItemClick(index)" style="white-space:normal;line-height:20px"
+           class="item item-borderless" :class="{'item-stable': index % 2 == 0}">
+        {{ item.get('content') }}
+      </div>
+    </scroller>
   </div>
 </template>
 <script>
@@ -37,7 +16,9 @@
   export default {
     data () {
       return {
-        msg: 'Hello! Vonic.'
+          items: [],
+          index:0,
+          size:20
       }
     },
       created () {
@@ -50,23 +31,81 @@
 //          })
       },
       mounted () {
+          this.onRefresh();
+      },
 
+      methods: {
+          onRefresh() {
+              this.index = 0;
+              this.items = [];
+              var query = new AV.Query('Joke');
+              query.skip(this.index);
+              query.limit(this.size);
+              query.descending('time');
+              query.equalTo('type', 0);
+              query.find().then(jokes => {
+                  // 查询到商品后，在前端展示到相应的位置中。
+//              console.log(jokes);
+                  for (let i = 0; i < jokes.length; i++){
+                      let joke = jokes[i];
+//                  console.log(joke.get('content'));
+                      this.items.push(joke);
+                  }
+
+                  this.index = this.index + 1;
+                  this.top = 1;
+                  this.bottom = jokes.length;
+
+                  setTimeout(() => {
+                      if (this.$refs.scroller)
+                          this.$refs.scroller.finishPullToRefresh()
+                  })
+
+              }).catch(function(error) {
+                  alert(JSON.stringify(error));
+              });
+          },
+
+          onInfinite() {
+              var query = new AV.Query('Joke');
+              let skip = this.index*this.size;
+              console.log('onInfinite: '+skip);
+              if (skip <= 0){
+                  if (this.$refs.scroller){
+                      this.$refs.scroller.finishInfinite();
+                  }
+                  return;
+              }
+              query.skip(this.index*this.size);
+              query.limit(this.size);
+              query.descending('time');
+              query.equalTo('type', 0);
+              query.find().then(jokes => {
+                  // 查询到商品后，在前端展示到相应的位置中。
+//              console.log(jokes);
+                  for (let i = 0; i < jokes.length; i++) {
+                      let joke = jokes[i];
+//                  console.log(joke.get('content'));
+                      this.items.push(joke);
+                  }
+
+                  this.index ++
+                  this.bottom = this.bottom + jokes.length;
+
+                  setTimeout(() => {
+                      if (this.$refs.scroller)
+                          this.$refs.scroller.finishInfinite()
+                  })
+
+              }).catch(function(error) {
+                  alert(JSON.stringify(error));
+              });
+
+          },
+
+          onItemClick(index) {
+              console.log(index)
+          }
       }
   }
 </script>
-<style>
-  h2 {
-    font-family: Candara,Calibri,Segoe,Segoe UI,Optima,Arial,sans-serif;
-    color: #888;
-  }
-
-  h3 {
-    font-family: Candara,Calibri,Segoe,Segoe UI,Optima,Arial,sans-serif;
-    line-height: 150px;
-    color: #fff;
-  }
-
-  .page.has-navbar .page-content {
-    padding-top: 100px;
-  }
-</style>

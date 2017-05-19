@@ -11,11 +11,13 @@ AV.init({
 // Page Components
 import Index from './components/Index.vue'
 import About from './components/About.vue'
+import RichJoke from './components/RichJoke.vue'
 
 // Routes
 const routes = [
   { path: '/', component: Index },
-  { path: '/about', component: About }
+  { path: '/about', component: About },
+    { path: '/richjoke', component: RichJoke }
 ]
 
 Vue.use(Vonic.app, {
